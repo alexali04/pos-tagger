@@ -43,9 +43,8 @@ def tag(corpus_name):
             output_file.write("\n")
 
             first_val = text.readline()  ## increment over \n to get to start of next sentence
-            if first_val == "":
+            if first_val == "" or first_val == "\n":
                 first_val = text.readline().strip() 
-
 
 def get_sent(text, first_token):
     sentence = [first_token] 
@@ -67,7 +66,7 @@ output_name = "output.txt"
 
 """ 
 Viterbi:
-    viterbi algorithm - uses dynamic programming to find optimal set of 
+    viterbi algorithm - uses dynamic programming to find optimal hidden sequence
     P(word is tag) = max(P(prev word is prev tag) * P(tag | prev tag) * P(word | tag)) for prev tag in tags
         - prevents exponential number of paths - information about previous paths is contained in previous word column
         - all information about prev paths is in prev words -> works w/ markov model
@@ -147,7 +146,7 @@ def get_tags(word_sequence):
     ## then we insert that in tag_sequence at the 0th position
 
     tag_seq = [best_prev_tag]
-    for q in range(len(word_sequence) - 2, 0, -1):
+    for q in range(len(word_sequence) - 1, 0, -1):
         best_prev_tag = backpointers[tag_seq[0]][q]
         tag_seq.insert(0, best_prev_tag)
 
