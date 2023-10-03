@@ -47,15 +47,14 @@ def tag(corpus_name):
                 first_val = text.readline().strip() 
 
 def get_sent(text, first_token):
+    first_token = first_token.replace("\n", "")
     sentence = [first_token] 
     while True:
         token = text.readline().strip()
-        if token == ".":
-            sentence.append(token)
+        if not token or token == "\n":
             break
-        elif not token:
-            break
-
+        
+        token = token.replace("\n", "")
         sentence.append(token)
 
     return sentence
@@ -103,7 +102,6 @@ def get_tags(word_sequence):
     ## this is OK since begin_sent is in transition_prob - and we're not actually tagging it as anything
     ## states include POS Tags + begin_sent + end_sent but we can kind of ignore begin_sent since we're doing it manually in initialization
     ## must exclude end_sent in previous tags though
-
 
 
     viterbi = {}
