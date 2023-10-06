@@ -60,10 +60,12 @@ def get_sent(text, first_token):
     return sentence
     
 
-output_name = "output.txt"
+output_name = "submission.pos"
 
 
 """ 
+hidden states cluster / categorize observed instances
+
 Viterbi:
     viterbi algorithm - uses dynamic programming to find optimal hidden sequence
     P(word is tag) = max(P(prev word is prev tag) * P(tag | prev tag) * P(word | tag)) for prev tag in tags
@@ -95,6 +97,9 @@ def get_tags(word_sequence):
 
     transition probability: P(curr state = verb | prev state = noun)
         - transition_table['Begin_State'] = {'DT': 0.5, 'NNP': 0.5}
+
+    OOV handling:
+        - default probability 1e-7 - seems to generate best results via hyperparameter tuning
     '''
     
     tags = likelihood.keys()
@@ -109,10 +114,12 @@ def get_tags(word_sequence):
     word_sequence = [word.lower() for word in word_sequence]
     
     ## INITIALIZATION:
+    ## Nouns, Verbs, etc.
     for tag in tags:
         viterbi[tag] = {}
-        viterbi[tag][0] = likelihood[tag].get(word_sequence[0], 1e-10) * transition_prob['Begin_Sent'].get(tag, 1e-10)
-        ## P(curr tag | token) * P(curr tag | previous tag)
+        viterbi[tag][0] = likelihood[tag].get(word_sequence[0], 1e-7) * transition_prob['Begin_Sent'].get(tag, 1e-7)
+        ## P(token | curr tag) * P(curr tag | previous tag)
+        ## P(token | curr tag) = emission probability -> P(verb emits eat)
 
         backpointers[tag] = {}
         backpointers[tag][0] = "Begin_Sent" ## start state is argmax for prev states
@@ -123,11 +130,13 @@ def get_tags(word_sequence):
 
             max_prob, best_prev_tag = max(
                 (
-                    viterbi[prev_tag][j - 1] * transition_prob[prev_tag].get(tag, 1e-10) * likelihood[tag].get(word_sequence[j], 1e-10),
+                    viterbi[prev_tag][j - 1] * transition_prob[prev_tag].get(tag, 1e-7) * likelihood[tag].get(word_sequence[j], 1e-7),
                     prev_tag
                 ) 
                 for prev_tag in tags - ["End_Sent"]
             )
+
+            ## P(curr word is curr state) = P(prev word is prev state) * P(curr word | curr state) * P(curr state | prev state)
             
             viterbi[tag][j] = max_prob
             backpointers[tag][j] = best_prev_tag
